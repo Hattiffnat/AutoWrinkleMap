@@ -1,3 +1,5 @@
+"""Скрипт для дебага"""
+
 import subprocess
 import shutil
 import os
@@ -9,8 +11,8 @@ ADDON_FOLDER = os.path.join(ADDONS_FOLDER, PACKAGE_NAME)
 
 TEST_FILE = r'test/Unity Slava wrinkle test.blend'
 
-def main():
 
+def main():
     shutil.rmtree(ADDON_FOLDER, ignore_errors=True)
 
     shutil.copytree(PACKAGE_NAME, ADDON_FOLDER)
