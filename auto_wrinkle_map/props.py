@@ -1,6 +1,7 @@
 import bpy
 from bpy.types import(
     Texture,
+    Image,
     TextureSlot,
     PropertyGroup,
 )
@@ -30,7 +31,7 @@ def shape_key_enum_cb(self, context):
 
 class WrinkleMapProperties(PropertyGroup):
     wrinkle_texture: PointerProperty(
-        type=Texture,
+        type=Image,
         name='Normal Map',
         description='Выберите карту нормали для смешивания'
     )
