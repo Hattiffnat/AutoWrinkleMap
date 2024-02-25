@@ -8,7 +8,7 @@ from .settings import settings
 bl_info = {
     'name': 'Auto Wrinkle Map',
     'author': 'Hattiffnat',
-    'version': (0, 0, 0),
+    'version': (0, 0, 1),
     'blender': (4, 0, 2),
     'location': 'View3D > Sidebar > Edit Tab',
     'description': 'Быстрое смешивание текстур на основе драйвера кости',

@@ -56,5 +56,6 @@ class WrinkleMapProperties(PropertyGroup):
             ('ROT_X', 'Rotation X', ''),
             ('ROT_Y', 'Rotation Y', ''),
             ('ROT_Z', 'Rotation Z', ''),
-        )
+        ),
+        default=1
     )

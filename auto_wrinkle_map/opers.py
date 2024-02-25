@@ -12,6 +12,8 @@ from bpy.types import (
     NodeSocketColor,
     NodeGroupInput,
     NodeGroupOutput,
+    NodeSocketColor,
+    NodeSocketFloat,
 )
 
 
@@ -57,10 +59,8 @@ class AddWrinkleMapOperator(bpy.types.Operator):
         if not mat.use_nodes:
             self.report('WARNING', f'Материал {mat.name} не использует ноды')
 
-        ### Создаём группу
-        gr = mat.node_tree.nodes.new(ShaderNodeGroup.__name__)
+        ### Создаём дерево
         gr_tree = bpy.data.node_groups.new('WrinkleMapGroup', ShaderNodeTree.__name__)
-        gr.node_tree = gr_tree
         gr_input_node = gr_tree.nodes.new(NodeGroupInput.__name__)
         gr_output_node = gr_tree.nodes.new(NodeGroupOutput.__name__)
 
@@ -74,12 +74,24 @@ class AddWrinkleMapOperator(bpy.types.Operator):
 
         # Соединяем Mix и Image Texture
         gr_tree.links.new(mix_node.inputs.get('B'), img_node.outputs.get('Color'))
+
         # Соединяем вход и выход группы
-        gr_tree.links.new(mix_node.inputs.get('A'), gr_input_node.outputs[0])
-        gr_tree.links.new(gr_output_node.inputs[0], mix_node.outputs[0])
+        inpA = gr_tree.interface.new_socket('A', in_out='INPUT')
+        inpA.socket_type = NodeSocketColor.__name__
+        outpResult = gr_tree.interface.new_socket('Result', in_out='OUTPUT')
+        outpResult.socket_type = NodeSocketColor.__name__
+
+        # Дополнительный вход значения фактора
+        inpFactor = gr_tree.interface.new_socket('Factor', in_out='INPUT')
+        inpFactor.socket_type = NodeSocketFloat.__name__
+
+        gr_tree.links.new(mix_node.inputs['Factor'], gr_input_node.outputs['Factor'])
+
+        gr_tree.links.new(mix_node.inputs['A'], gr_input_node.outputs['A'])
+        gr_tree.links.new(gr_output_node.inputs['Result'], mix_node.outputs['Result'])
 
         # Размещаем ноды визуально
-        indent = 10
+        indent = 30
 
         gr_input_node.location.x = img_node.location.x - gr_input_node.width - indent
         gr_input_node.location.y = img_node.location.y + gr_input_node.height + indent
@@ -90,17 +102,46 @@ class AddWrinkleMapOperator(bpy.types.Operator):
         gr_output_node.location.x = mix_node.location.x + mix_node.width + indent
         gr_output_node.location.y = img_node.location.y
 
-        # Находим Material Output и относительно него ищем куда воткнуть новую группу
-        roots = (m_n for m_n in mat.node_tree if m_n.type == 'OUTPUT_MATERIAL')
+        ## Находим Material Output и относительно него ищем куда воткнуть группу
+        roots = (m_n for m_n in mat.node_tree.nodes if m_n.type == 'OUTPUT_MATERIAL')
 
         surface_nodes = get_connected_nodes(roots, 'Surface', 'inputs')
         normal_nodes = get_connected_nodes(surface_nodes, 'Normal', 'inputs')
 
-        # Границы существующих нодов
         range_x, range_y = nodes_bounds(mat.node_tree.nodes)
 
         for normal_node in normal_nodes:
-            ...
+            gr = mat.node_tree.nodes.new(ShaderNodeGroup.__name__)
+            gr.node_tree = gr_tree
+
+            normal_col_sock = normal_node.inputs.get('Color')
+            if normal_col_sock.links:
+                link = normal_col_sock.links[0]
+                col_sock_A = link.from_socket
+                mat.node_tree.links.remove(link)
+
+                mat.node_tree.links.new(gr.inputs['A'], col_sock_A)
+
+            mat.node_tree.links.new(normal_col_sock, gr.outputs['Result'])
+
+            # Размещаем группу визуально
+            gr.location.y = range_y[0]
+            gr.location.x = normal_node.location.x - gr.width - indent
+
+            # Добавляем драйвер
+            fcur = gr.inputs['Factor'].driver_add('default_value')
+            fcur.driver.type = 'SCRIPTED'
+
+            var = fcur.driver.variables.new()
+
+            fcur.driver.expression = f'{var.name} + 0.0'
+            var.type = 'TRANSFORMS'
+
+            targ = var.targets[0]
+            targ.id = arm_obj
+            targ.bone_target = context.active_bone.name
+            targ.transform_type = props.bone_transform
+            targ.transform_space = 'LOCAL_SPACE'
 
         return {'FINISHED'}
 
