@@ -6,7 +6,7 @@
 В Windows это по умолчанию: [drive]:\Users\[user]\AppData\Roaming\Blender Foundation\Blender\[number]\scripts\addons 
 
 ## Второй способ
-1. Запакуйте папку "auto_wrinkle_map" в архив.
+1. Запакуйте папку "auto_wrinkle_map" в zip архив.
 2. Откройте Blender.
 3. Edit > Preferences
 4. В появившемся окне выберите вкладку Add-ons
