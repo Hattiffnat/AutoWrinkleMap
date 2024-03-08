@@ -1,9 +1,9 @@
 import math
-from typing import Iterable, Generator, Union, Literal
+from types import SimpleNamespace
 
-from mathutils import Vector
 import bpy
 from bpy.types import (
+    Operator,
     ShaderNode,
     ShaderNodeMix,
     ShaderNodeTexImage,
@@ -16,23 +16,32 @@ from bpy.types import (
     NodeSocketFloat,
 )
 
+from .settings import settings
+from .utils import get_wrinkle_node_tree
 
-class AddWrinkleMapOperator(bpy.types.Operator):
+
+class AddWrinkleMapOperator(Operator):
     """Добавить shape key драйвер"""
     bl_idname = 'wrmap.add_wrinkle_map'
     bl_label = 'Add Wrinkle Map'
 
+    @classmethod
+    def poll(cls, context):
+        return context.object.parent and context.object.parent.type == 'ARMATURE'
+
     def execute(self, context):
         print('WrinkleMapOperator executed')
 
-        props = context.scene.wrmap_props
+        sc_props = context.scene.wrmap_props
 
-        arm_obj = context.object
-        mesh_obj = context.scene.objects.get(props.mesh_object)
+        mesh_obj = context.object
+        ob_wr_props = mesh_obj.wrinkles.new()
+        breakpoint()
+        arm_obj = sc_props.armature
 
         ##### Shape Key драйвер
-        if props.shape_key:
-            shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(props.shape_key)
+        if sc_props.shape_key:
+            shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(sc_props.shape_key)
             fcur = shape_key_block.driver_add('value')
             fcur.driver.type = 'SCRIPTED'
 
@@ -44,7 +53,7 @@ class AddWrinkleMapOperator(bpy.types.Operator):
             targ = var.targets[0]
             targ.id = arm_obj
             targ.bone_target = context.active_bone.name
-            targ.transform_type = props.bone_transform
+            targ.transform_type = sc_props.bone_transform
             targ.transform_space = 'LOCAL_SPACE'
 
         ##### Материал
@@ -59,49 +68,6 @@ class AddWrinkleMapOperator(bpy.types.Operator):
         if not mat.use_nodes:
             self.report('WARNING', f'Материал {mat.name} не использует ноды')
 
-        ### Создаём дерево
-        gr_tree = bpy.data.node_groups.new('WrinkleMapGroup', ShaderNodeTree.__name__)
-        gr_input_node = gr_tree.nodes.new(NodeGroupInput.__name__)
-        gr_output_node = gr_tree.nodes.new(NodeGroupOutput.__name__)
-
-        ## Создаём Mix и Image Texture ноды
-        mix_node = gr_tree.nodes.new(ShaderNodeMix.__name__)
-        mix_node.data_type = 'RGBA'
-        mix_node.inputs.get('Factor').default_value = 0
-
-        img_node = gr_tree.nodes.new(ShaderNodeTexImage.__name__)
-        img_node.image = props.wrinkle_texture
-
-        # Соединяем Mix и Image Texture
-        gr_tree.links.new(mix_node.inputs.get('B'), img_node.outputs.get('Color'))
-
-        # Соединяем вход и выход группы
-        inpA = gr_tree.interface.new_socket('A', in_out='INPUT')
-        inpA.socket_type = NodeSocketColor.__name__
-        outpResult = gr_tree.interface.new_socket('Result', in_out='OUTPUT')
-        outpResult.socket_type = NodeSocketColor.__name__
-
-        # Дополнительный вход значения фактора
-        inpFactor = gr_tree.interface.new_socket('Factor', in_out='INPUT')
-        inpFactor.socket_type = NodeSocketFloat.__name__
-
-        gr_tree.links.new(mix_node.inputs['Factor'], gr_input_node.outputs['Factor'])
-
-        gr_tree.links.new(mix_node.inputs['A'], gr_input_node.outputs['A'])
-        gr_tree.links.new(gr_output_node.inputs['Result'], mix_node.outputs['Result'])
-
-        # Размещаем ноды визуально
-        indent = 30
-
-        gr_input_node.location.x = img_node.location.x - gr_input_node.width - indent
-        gr_input_node.location.y = img_node.location.y + gr_input_node.height + indent
-
-        mix_node.location.x = img_node.location.x + img_node.width + indent
-        mix_node.location.y = img_node.location.y + mix_node.height + indent
-
-        gr_output_node.location.x = mix_node.location.x + mix_node.width + indent
-        gr_output_node.location.y = img_node.location.y
-
         ## Находим Material Output и относительно него ищем куда воткнуть группу
         roots = (m_n for m_n in mat.node_tree.nodes if m_n.type == 'OUTPUT_MATERIAL')
 
@@ -110,9 +76,10 @@ class AddWrinkleMapOperator(bpy.types.Operator):
 
         range_x, range_y = nodes_bounds(mat.node_tree.nodes)
 
+        tree = get_wrinkle_node_tree()
         for normal_node in normal_nodes:
             gr = mat.node_tree.nodes.new(ShaderNodeGroup.__name__)
-            gr.node_tree = gr_tree
+            gr.node_tree = tree
 
             normal_col_sock = normal_node.inputs.get('Color')
             if normal_col_sock.links:
@@ -126,7 +93,7 @@ class AddWrinkleMapOperator(bpy.types.Operator):
 
             # Размещаем группу визуально
             gr.location.y = range_y[0]
-            gr.location.x = normal_node.location.x - gr.width - indent
+            gr.location.x = normal_node.location.x - gr.width - settings.INDENT
 
             # Добавляем драйвер
             fcur = gr.inputs['Factor'].driver_add('default_value')
@@ -140,45 +107,7 @@ class AddWrinkleMapOperator(bpy.types.Operator):
             targ = var.targets[0]
             targ.id = arm_obj
             targ.bone_target = context.active_bone.name
-            targ.transform_type = props.bone_transform
+            targ.transform_type = sc_props.bone_transform
             targ.transform_space = 'LOCAL_SPACE'
 
         return {'FINISHED'}
-
-
-def nodes_bounds(nodes: Iterable[ShaderNode]) -> tuple[list[float], list[float]]:
-    """Определяет границы прямоугольника в котором находятся ноды"""
-
-    range_x = [math.inf, -math.inf]     # x_min, x_max
-    range_y = [math.inf, -math.inf]     # y_min, y_max
-
-    for node in nodes:
-        if range_x[0] > node.location.x: range_x[0] = node.location.x
-        if range_y[0] > node.location.y: range_y[0] = node.location.y
-
-        node_right_border = node.location.x + node.width
-        if range_x[1] < node_right_border: range_x[1] = node_right_border
-        node_bottom_border = node.location.y + node.height
-        if range_y[1] < node_bottom_border: range_y[1] = node_bottom_border
-
-    return range_x, range_y
-
-
-def get_connected_nodes(nodes: Union[ShaderNode, Iterable[ShaderNode]],
-                        sockets_names: Union[str, Iterable[str]],
-                        mode: Literal['inputs', 'outputs']) -> Generator:
-    """Получить присоединенные ноды по имени сокета"""
-
-    if isinstance(nodes, ShaderNode):
-        nodes = (nodes,)
-
-    if isinstance(sockets_names, str):
-        sockets_names = (sockets_names,)
-    else:
-        sockets_names = tuple(sockets_names)
-
-    for node in nodes:
-        for socket in getattr(node, mode):
-            if socket.name not in sockets_names: continue
-            for link in socket.links:
-                yield link.from_node if mode == 'inputs' else link.to_node
