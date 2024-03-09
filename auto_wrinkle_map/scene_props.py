@@ -19,16 +19,7 @@ from bpy.props import (
     BoolProperty
 )
 
-
-BONE_TRANSFORMS = (
-    ('LOC_X', 'Location X', ''),
-    ('LOC_Y', 'Location Y', ''),
-    ('LOC_Z', 'Location Z', ''),
-
-    ('ROT_X', 'Rotation X', ''),
-    ('ROT_Y', 'Rotation Y', ''),
-    ('ROT_Z', 'Rotation Z', ''),
-)
+from .utils import BONE_TRANSFORMS
 
 
 def mesh_obj_enum_cb(self, context):
@@ -47,10 +38,6 @@ def shape_key_enum_cb(self, context):
         yield key_block.name, key_block.name, 'Shape Key'
 
 
-def shape_key_poll_cb(self, key):
-    return True
-
-
 def mat_poll_cb(self, mat):
     # breakpoint()
     return mat in (slot.material for slot in bpy.context.object.material_slots)
@@ -62,9 +49,10 @@ def armature_poll_cb(self, arm):
 
 
 def bone_enum_cb(self, context):
-    arm = context.scene.wrmap_props.armature
-    if not arm: return
-    for bone in arm.data.bones:
+    if not self.armature:
+        yield '', '', 'Bone'
+        return
+    for bone in self.armature.data.bones:
         yield bone.name, bone.name, 'Bone'
 
 
@@ -72,11 +60,6 @@ class WrinklePropsScene(PropertyGroup):
     name: StringProperty(
         name='Setup Name',
         default='My wrinkle map'
-    )
-    wrinkle_image: PointerProperty(
-        type=Image,
-        name='Normal Map',
-        description='Select normal map for mix'
     )
     material: PointerProperty(
         type=Material,
@@ -94,47 +77,9 @@ class WrinklePropsScene(PropertyGroup):
         name='Bone',
         description='Select bone',
         items=bone_enum_cb,
-        default=0,
     )
     bone_transform: EnumProperty(
-        name='Bone Property',
-        description='Select bone transformation for driver',
-        items=BONE_TRANSFORMS,
-        default=1
-    )
-    shape_key: EnumProperty(
-        name='Shape Key',
-        description='Select shape key',
-        items=shape_key_enum_cb,
-    )
-    node_tree: PointerProperty(
-        type=NodeTree,
-        name='Node Tree',
-    )
-
-
-class WrinklePropsObject(PropertyGroup):
-    expand: BoolProperty(name='Expand', default=False)
-    name: StringProperty(
-        name='Setup Name',
-    )
-    wrinkle_image: PointerProperty(
-        type=Image,
-    )
-    material: PointerProperty(
-        type=Material,
-        poll=mat_poll_cb,
-    )
-    armature: PointerProperty(
-        type=Object,
-        poll=armature_poll_cb,
-    )
-    bone: EnumProperty(
-        items=bone_enum_cb,
-        default=0,
-    )
-    bone_transform: EnumProperty(
-        name='Bone Property',
+        name='Bone Transform',
         description='Select bone transformation for driver',
         items=BONE_TRANSFORMS,
         default=1

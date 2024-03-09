@@ -1,3 +1,4 @@
+import math
 from typing import Iterable, Generator, Union, Literal
 
 import bpy
@@ -9,16 +10,24 @@ from bpy.types import (
     NodeSocketColor,
     NodeGroupInput,
     NodeGroupOutput,
-    NodeSocketColor,
     NodeSocketFloat,
 )
 
 from .settings import settings
 
 
-def create_node_tree():
-    sc_props = bpy.context.scene.wrmap_props
+BONE_TRANSFORMS = (
+    ('LOC_X', 'Location X', ''),
+    ('LOC_Y', 'Location Y', ''),
+    ('LOC_Z', 'Location Z', ''),
 
+    ('ROT_X', 'Rotation X', ''),
+    ('ROT_Y', 'Rotation Y', ''),
+    ('ROT_Z', 'Rotation Z', ''),
+)
+
+
+def create_node_tree():
     ### Создаём дерево
     gr_tree = bpy.data.node_groups.new('WrinkleMapGroup', ShaderNodeTree.__name__)
     gr_input_node = gr_tree.nodes.new(NodeGroupInput.__name__)
@@ -30,7 +39,7 @@ def create_node_tree():
     mix_node.inputs.get('Factor').default_value = 0
 
     img_node = gr_tree.nodes.new(ShaderNodeTexImage.__name__)
-    img_node.image = sc_props.wrinkle_image
+    # img_node.image = sc_props.wrinkle_image
 
     # Соединяем Mix и Image Texture
     gr_tree.links.new(mix_node.inputs.get('B'), img_node.outputs.get('Color'))
@@ -84,7 +93,7 @@ def nodes_bounds(nodes: Iterable[ShaderNode]) -> tuple[list[float], list[float]]
         node_right_border = node.location.x + node.width
         if range_x[1] < node_right_border: range_x[1] = node_right_border
         node_top_border = node.location.y + node.height
-        if range_y[1] < node_top_border: range_y[1] = node_bottom_border
+        if range_y[1] < node_top_border: range_y[1] = node_top_border
 
     return range_x, range_y
 

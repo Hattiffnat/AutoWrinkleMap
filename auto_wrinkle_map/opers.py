@@ -4,20 +4,13 @@ from types import SimpleNamespace
 import bpy
 from bpy.types import (
     Operator,
-    ShaderNode,
-    ShaderNodeMix,
-    ShaderNodeTexImage,
     ShaderNodeGroup,
-    ShaderNodeTree,
-    NodeSocketColor,
-    NodeGroupInput,
-    NodeGroupOutput,
-    NodeSocketColor,
-    NodeSocketFloat,
 )
+from bpy.props import PointerProperty
 
+from .object_props import WrinklePropsObject
 from .settings import settings
-from .utils import get_wrinkle_node_tree
+from .utils import get_wrinkle_node_tree, get_connected_nodes, nodes_bounds
 
 
 class AddWrinkleMapOperator(Operator):
@@ -27,7 +20,25 @@ class AddWrinkleMapOperator(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.object.parent and context.object.parent.type == 'ARMATURE'
+        sc_props = context.scene.wrmap_props
+        return all((
+            sc_props.material,
+            sc_props.armature,
+            sc_props.bone,
+            sc_props.bone_transform,
+            sc_props.shape_key,
+        ))
+
+    def check_props(self, obj):
+        sc_props = bpy.context.scene.wrmap_props
+        sc_img_node = sc_props.node_tree.nodes.get('Image Texture')
+        for ob_props in obj.wrinkles:
+            ob_img_node = ob_props.node_tree.nodes.get('Image Texture')
+            if ob_props.bone == sc_props.bone:
+                self.report({'ERROR'}, 'This bone is used')
+                return False
+        # TODO доделать сравнение
+        return True
 
     def execute(self, context):
         print('WrinkleMapOperator executed')
@@ -35,38 +46,41 @@ class AddWrinkleMapOperator(Operator):
         sc_props = context.scene.wrmap_props
 
         mesh_obj = context.object
-        ob_wr_props = mesh_obj.wrinkles.new()
-        breakpoint()
-        arm_obj = sc_props.armature
-
-        ##### Shape Key драйвер
-        if sc_props.shape_key:
-            shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(sc_props.shape_key)
-            fcur = shape_key_block.driver_add('value')
-            fcur.driver.type = 'SCRIPTED'
-
-            var = fcur.driver.variables.new()
-
-            fcur.driver.expression = f'{var.name} + 0.0'
-            var.type = 'TRANSFORMS'
-
-            targ = var.targets[0]
-            targ.id = arm_obj
-            targ.bone_target = context.active_bone.name
-            targ.transform_type = sc_props.bone_transform
-            targ.transform_space = 'LOCAL_SPACE'
-
-        ##### Материал
-
-        # Проверка наличия материала
-        if not mesh_obj.material_slots:
-            self.report('ERROR', f'У {mesh_obj.name} нету материала')
+        if not self.check_props(mesh_obj):
             return {'CANCELLED'}
 
-        mat = mesh_obj.material_slots[0].material
+        # breakpoint()
+        #### Копируем свойства в объект
+        ob_props = mesh_obj.wrinkles.add()
+        ob_props.node_tree = get_wrinkle_node_tree()
+        ob_props.name = sc_props.name
+        ob_props.armature = sc_props.armature
+        ob_props.shape_key = sc_props.shape_key
+        ob_props.bone = sc_props.bone
+        ob_props.bone_transform = sc_props.bone_transform
+        ob_props.material = sc_props.material
+        ob_props.bone_transform = sc_props.bone_transform
 
+        ##### Shape Key драйвер
+        shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(ob_props.shape_key)
+        fcur = shape_key_block.driver_add('value')
+        fcur.driver.type = 'SCRIPTED'
+
+        var = fcur.driver.variables.new()
+
+        fcur.driver.expression = f'{var.name} + 0.0'
+        var.type = 'TRANSFORMS'
+
+        targ = var.targets[0]
+        targ.id = ob_props.armature
+        targ.bone_target = ob_props.bone
+        targ.transform_type = ob_props.bone_transform
+        targ.transform_space = 'LOCAL_SPACE'
+
+        ##### Материал
+        mat = ob_props.material
         if not mat.use_nodes:
-            self.report('WARNING', f'Материал {mat.name} не использует ноды')
+            self.report({'WARNING'}, f'Material {mat.name} not using nodes')
 
         ## Находим Material Output и относительно него ищем куда воткнуть группу
         roots = (m_n for m_n in mat.node_tree.nodes if m_n.type == 'OUTPUT_MATERIAL')
@@ -76,10 +90,9 @@ class AddWrinkleMapOperator(Operator):
 
         range_x, range_y = nodes_bounds(mat.node_tree.nodes)
 
-        tree = get_wrinkle_node_tree()
         for normal_node in normal_nodes:
             gr = mat.node_tree.nodes.new(ShaderNodeGroup.__name__)
-            gr.node_tree = tree
+            gr.node_tree = ob_props.node_tree
 
             normal_col_sock = normal_node.inputs.get('Color')
             if normal_col_sock.links:
@@ -95,7 +108,7 @@ class AddWrinkleMapOperator(Operator):
             gr.location.y = range_y[0]
             gr.location.x = normal_node.location.x - gr.width - settings.INDENT
 
-            # Добавляем драйвер
+            # Node group драйвер
             fcur = gr.inputs['Factor'].driver_add('default_value')
             fcur.driver.type = 'SCRIPTED'
 
@@ -105,9 +118,19 @@ class AddWrinkleMapOperator(Operator):
             var.type = 'TRANSFORMS'
 
             targ = var.targets[0]
-            targ.id = arm_obj
-            targ.bone_target = context.active_bone.name
-            targ.transform_type = sc_props.bone_transform
+            targ.id = ob_props.armature
+            targ.bone_target = ob_props.bone
+            targ.transform_type = ob_props.bone_transform
             targ.transform_space = 'LOCAL_SPACE'
 
         return {'FINISHED'}
+
+
+class RemoveWrinkleMapOperator(Operator):
+    """Добавить shape key драйвер"""
+    bl_idname = 'wrmap.remove_wrinkle_map'
+    bl_label = 'Remove Wrinkle Map'
+
+    ob_prop = PointerProperty(type=WrinklePropsObject)
+
+    def execute(self, context): ...

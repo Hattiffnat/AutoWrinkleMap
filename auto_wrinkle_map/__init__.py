@@ -1,7 +1,8 @@
 import bpy
 
-from .props import WrinklePropsScene, WrinklePropsObject
-from .opers import AddWrinkleMapOperator
+from .scene_props import WrinklePropsScene
+from .object_props import WrinklePropsObject
+from .opers import AddWrinkleMapOperator, RemoveWrinkleMapOperator
 from .ui import WrinkleMapPanel
 from .handler import set_tree_handler
 
@@ -20,6 +21,7 @@ bl_info = {
 classes = (
     WrinkleMapPanel,
     AddWrinkleMapOperator,
+    RemoveWrinkleMapOperator,
     WrinklePropsScene,
     WrinklePropsObject,
 )
