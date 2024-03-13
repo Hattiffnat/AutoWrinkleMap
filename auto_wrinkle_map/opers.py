@@ -61,6 +61,13 @@ class AddWrinkleMapOperator(Operator):
         ob_props.material = sc_props.material
         ob_props.bone_transform = sc_props.bone_transform
 
+        # Настройка дерева
+        ob_props.node_tree.name = ob_props.name
+
+        # Настройка изображения
+        ob_props.node_tree.nodes['Image Texture'].image.colorspace_settings.name\
+            = 'Non-Color'
+
         ##### Shape Key драйвер
         shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(ob_props.shape_key)
         fcur = shape_key_block.driver_add('value')
@@ -109,3 +116,13 @@ class RemoveWrinkleMapOperator(Operator):
         context.object.wrinkles.remove(self.ob_prop_i)
         context.scene.frame_set(frame)
         return {'FINISHED'}
+
+
+class GenerateJsonOperator(Operator):
+    """Generate operator"""
+    bl_idname = 'wrmap.generate_json'
+    bl_label = 'Generate JSON'
+
+    def execute(self, context):
+        return {'FINISHED'}
+

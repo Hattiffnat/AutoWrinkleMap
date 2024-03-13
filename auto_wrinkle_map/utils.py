@@ -75,7 +75,6 @@ def create_node_tree():
     mix_node.inputs.get('Factor').default_value = 0
 
     img_node = gr_tree.nodes.new(ShaderNodeTexImage.__name__)
-    # img_node.image = sc_props.wrinkle_image
 
     # Соединяем Mix и Image Texture
     gr_tree.links.new(mix_node.inputs.get('B'), img_node.outputs.get('Color'))
@@ -166,6 +165,8 @@ def add_node_groups(mat, node_tree):
     if not mat.use_nodes:
         INFO.warn(f'Material {mat.name} not using nodes')
 
+    sc_props = bpy.context.scene.wrmap_props
+
     ## Находим Material Output и относительно него ищем куда воткнуть группу
     roots = (m_n for m_n in mat.node_tree.nodes if m_n.type == 'OUTPUT_MATERIAL')
 
@@ -178,6 +179,7 @@ def add_node_groups(mat, node_tree):
     for normal_node in normal_nodes:
         gr = mat.node_tree.nodes.new(ShaderNodeGroup.__name__)
         gr.node_tree = node_tree
+        gr.name = sc_props.name
 
         normal_col_sock = normal_node.inputs.get('Color')
         if normal_col_sock.links:
