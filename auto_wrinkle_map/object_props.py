@@ -19,7 +19,11 @@ from bpy.props import (
     BoolProperty
 )
 
-from .utils import BONE_TRANSFORMS
+from .utils import (
+    BONE_TRANSFORMS,
+    delete_node_groups,
+    add_node_groups, set_node_group_driver,
+)
 
 
 def mat_poll_cb(self, mat):
@@ -27,8 +31,14 @@ def mat_poll_cb(self, mat):
 
 
 def mat_update_cb(self, context):
+    if not self.expand: return
     print('mat_update_cb:')
-    print(f'\tself: {self}, context?: {context}')
+
+    for mat_slot in context.object.material_slots:
+        delete_node_groups(mat_slot.material, self.node_tree)
+
+    for gr in add_node_groups(self.material, self.node_tree):
+        set_node_group_driver(gr, self)
 
 
 def armature_poll_cb(self, arm):
@@ -37,7 +47,6 @@ def armature_poll_cb(self, arm):
 
 def bone_enum_cb(self, context):
     if not self.armature:
-        yield '', '', 'Bone'
         return
     for bone in self.armature.data.bones:
         yield bone.name, bone.name, 'Bone'

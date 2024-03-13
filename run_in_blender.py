@@ -9,12 +9,11 @@ PACKAGE_NAME = 'auto_wrinkle_map'
 ADDONS_FOLDER = os.path.expanduser(r'~/.config/blender/4.0/scripts/addons')
 ADDON_FOLDER = os.path.join(ADDONS_FOLDER, PACKAGE_NAME)
 
-TEST_FILE = r'test/Unity Slava wrinkle test 2.blend'
+TEST_FILE = r'test/Unity Slava wrinkle test.blend'
 
 
 def main():
     shutil.rmtree(ADDON_FOLDER, ignore_errors=True)
-
     shutil.copytree(PACKAGE_NAME, ADDON_FOLDER)
 
     subprocess.call([

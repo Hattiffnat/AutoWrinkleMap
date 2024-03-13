@@ -1,20 +1,20 @@
-import math
-from types import SimpleNamespace
-
 import bpy
 from bpy.types import (
     Operator,
     ShaderNodeGroup,
 )
-from bpy.props import PointerProperty
+from bpy.props import IntProperty
 
-from .object_props import WrinklePropsObject
-from .settings import settings
-from .utils import get_wrinkle_node_tree, get_connected_nodes, nodes_bounds
+from .utils import (
+    InfoMsg,
+    get_wrinkle_node_tree,
+    delete_node_groups,
+    add_node_groups, set_node_group_driver,
+)
 
 
 class AddWrinkleMapOperator(Operator):
-    """Добавить shape key драйвер"""
+    """Add driver and node group"""
     bl_idname = 'wrmap.add_wrinkle_map'
     bl_label = 'Add Wrinkle Map'
 
@@ -42,7 +42,7 @@ class AddWrinkleMapOperator(Operator):
 
     def execute(self, context):
         print('WrinkleMapOperator executed')
-
+        log = InfoMsg(self)
         sc_props = context.scene.wrmap_props
 
         mesh_obj = context.object
@@ -78,59 +78,34 @@ class AddWrinkleMapOperator(Operator):
         targ.transform_space = 'LOCAL_SPACE'
 
         ##### Материал
-        mat = ob_props.material
-        if not mat.use_nodes:
-            self.report({'WARNING'}, f'Material {mat.name} not using nodes')
-
-        ## Находим Material Output и относительно него ищем куда воткнуть группу
-        roots = (m_n for m_n in mat.node_tree.nodes if m_n.type == 'OUTPUT_MATERIAL')
-
-        surface_nodes = get_connected_nodes(roots, 'Surface', 'inputs')
-        normal_nodes = get_connected_nodes(surface_nodes, 'Normal', 'inputs')
-
-        range_x, range_y = nodes_bounds(mat.node_tree.nodes)
-
-        for normal_node in normal_nodes:
-            gr = mat.node_tree.nodes.new(ShaderNodeGroup.__name__)
-            gr.node_tree = ob_props.node_tree
-
-            normal_col_sock = normal_node.inputs.get('Color')
-            if normal_col_sock.links:
-                link = normal_col_sock.links[0]
-                col_sock_A = link.from_socket
-                mat.node_tree.links.remove(link)
-
-                mat.node_tree.links.new(gr.inputs['A'], col_sock_A)
-
-            mat.node_tree.links.new(normal_col_sock, gr.outputs['Result'])
-
-            # Размещаем группу визуально
-            gr.location.y = range_y[0]
-            gr.location.x = normal_node.location.x - gr.width - settings.INDENT
-
-            # Node group драйвер
-            fcur = gr.inputs['Factor'].driver_add('default_value')
-            fcur.driver.type = 'SCRIPTED'
-
-            var = fcur.driver.variables.new()
-
-            fcur.driver.expression = f'{var.name} + 0.0'
-            var.type = 'TRANSFORMS'
-
-            targ = var.targets[0]
-            targ.id = ob_props.armature
-            targ.bone_target = ob_props.bone
-            targ.transform_type = ob_props.bone_transform
-            targ.transform_space = 'LOCAL_SPACE'
+        for gr in add_node_groups(ob_props.material, ob_props.node_tree):
+            set_node_group_driver(gr, ob_props)
 
         return {'FINISHED'}
 
 
 class RemoveWrinkleMapOperator(Operator):
-    """Добавить shape key драйвер"""
+    """Remove drivers"""
     bl_idname = 'wrmap.remove_wrinkle_map'
     bl_label = 'Remove Wrinkle Map'
 
-    ob_prop = PointerProperty(type=WrinklePropsObject)
+    ob_prop_i: IntProperty()
 
-    def execute(self, context): ...
+    def execute(self, context):
+        frame = context.scene.frame_current
+        context.scene.frame_set(0)
+
+        ob_prop = context.object.wrinkles[self.ob_prop_i]
+        mesh_obj = context.object
+
+        shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(ob_prop.shape_key)
+        shape_key_block.driver_remove('value')
+
+        delete_node_groups(ob_prop.material, ob_prop.node_tree)
+
+        if ob_prop.node_tree.users < 1:
+            bpy.data.node_groups.remove(ob_prop.node_tree)
+
+        context.object.wrinkles.remove(self.ob_prop_i)
+        context.scene.frame_set(frame)
+        return {'FINISHED'}

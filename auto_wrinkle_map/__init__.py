@@ -4,7 +4,7 @@ from .scene_props import WrinklePropsScene
 from .object_props import WrinklePropsObject
 from .opers import AddWrinkleMapOperator, RemoveWrinkleMapOperator
 from .ui import WrinkleMapPanel
-from .handler import set_tree_handler
+from .handler import awm_set_tree_handler
 
 
 bl_info = {
@@ -37,8 +37,8 @@ def register():
     # Свойства в объекте для хранения
     bpy.types.Object.wrinkles = bpy.props.CollectionProperty(type=WrinklePropsObject)
 
-    bpy.app.handlers.load_post.append(set_tree_handler)
-    # bpy.app.handlers.load_post.append(set_tree_handler)
+    bpy.app.handlers.load_post.append(awm_set_tree_handler)
+    bpy.app.handlers.version_update.append(awm_set_tree_handler)
 
 
 def unregister():
@@ -48,5 +48,5 @@ def unregister():
     del bpy.types.Object.wrinkles
     del bpy.types.Scene.wrmap_props
 
-    bpy.app.handlers.load_post.remove(set_tree_handler)
-    # bpy.app.handlers.load_post.remove(set_tree_handler)
+    bpy.app.handlers.load_post.remove(awm_set_tree_handler)
+    bpy.app.handlers.version_update.remove(awm_set_tree_handler)

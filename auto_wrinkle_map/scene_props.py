@@ -50,7 +50,6 @@ def armature_poll_cb(self, arm):
 
 def bone_enum_cb(self, context):
     if not self.armature:
-        yield '', '', 'Bone'
         return
     for bone in self.armature.data.bones:
         yield bone.name, bone.name, 'Bone'
