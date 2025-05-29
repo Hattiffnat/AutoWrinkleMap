@@ -21,6 +21,7 @@ class AddWrinkleMapOperator(Operator):
     @classmethod
     def poll(cls, context):
         sc_props = context.scene.wrmap_props
+
         return all((
             sc_props.material,
             sc_props.armature,
@@ -32,17 +33,20 @@ class AddWrinkleMapOperator(Operator):
     def check_props(self, obj):
         sc_props = bpy.context.scene.wrmap_props
         sc_img_node = sc_props.node_tree.nodes.get('Image Texture')
+        if not sc_img_node.image:
+            self.log.error('Texture is not selected!')
+            return False
+
         for ob_props in obj.wrinkles:
             ob_img_node = ob_props.node_tree.nodes.get('Image Texture')
             if ob_props.bone == sc_props.bone:
-                self.report({'ERROR'}, 'This bone is used')
+                self.log.error('This bone is used')
                 return False
-        # TODO доделать сравнение
         return True
 
     def execute(self, context):
         print('WrinkleMapOperator executed')
-        log = InfoMsg(self)
+        self.log = InfoMsg(self)
         sc_props = context.scene.wrmap_props
 
         mesh_obj = context.object

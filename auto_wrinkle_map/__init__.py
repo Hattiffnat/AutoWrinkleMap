@@ -10,11 +10,12 @@ from .handler import awm_set_tree_handler
 bl_info = {
     'name': 'Auto Wrinkle Map',
     'author': 'Hattiffnat',
-    'version': (0, 0, 3),
+    'version': (0, 0, 4),
     'blender': (4, 0, 2),
     'location': 'View3D > Sidebar > Auto Wrinkle Map Tab',
-    'description': 'Быстрое смешивание текстур на основе драйвера кости',
-    'category': 'Node',
+    'description': 'Helps you to create wrinkle maps driven from bones '
+                   '(with shape-keys) in one click',
+    'category': 'Rigging',
 }
 
 
