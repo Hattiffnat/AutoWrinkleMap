@@ -180,6 +180,9 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
+# my
+/*release/
+
 __pycache__
 *.blend1
 *.blend2
