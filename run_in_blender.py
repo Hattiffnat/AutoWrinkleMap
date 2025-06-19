@@ -6,7 +6,7 @@ import os
 
 
 PACKAGE_NAME = 'auto_wrinkle_map'
-ADDONS_FOLDER = os.path.expanduser(r'~/.config/blender/4.0/scripts/addons')
+ADDONS_FOLDER = os.path.expanduser(r'~/.config/blender/4.4/scripts/addons')
 ADDON_FOLDER = os.path.join(ADDONS_FOLDER, PACKAGE_NAME)
 
 TEST_FILE = r'test/Unity Slava wrinkle test.blend'
