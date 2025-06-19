@@ -1,0 +1,29 @@
+name: Release
+env:
+  ARCHIVE_NAME: auto_wrinkle_map
+
+on:
+  release:
+    types: [created]  # Срабатывает при создании нового релиза
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create archive
+        run: |
+          mkdir -p release/$ARCHIVE_NAME
+          cp auto_wrinkle_map/*.py release/$ARCHIVE_NAME/
+          cp -r auto_wrinkle_map/icons release/$ARCHIVE_NAME/icons
+          zip -r ./release/$ARCHIVE_NAME.zip ./release/$ARCHIVE_NAME
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ARCHIVE_NAME }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
