@@ -1,5 +1,16 @@
-# Установка:
-2. Откройте Blender.
-3. Edit > Preferences
-4. В появившемся окне выберите вкладку Add-ons
-5. Нажмите кнопку Install и в появившемся браузере выберите архив auto_wrinkle_map.zip
+
+# Installation:
+
+## Via Blender Extensions
+
+1. Launch Blender.
+2. Edit > Preferences > Extensions > Get Extensions
+3. Enter "Auto Wrinkle Map" in the search
+4. Click the **Install** button on the extension found
+
+## Manually
+
+1. Download the auto_wrinkle_map_extension.zip archive from the **[latest release](https://github.com/Hattiffnat/AutoWrinkleMap/releases)**
+2. Launch Blender.
+3. Edit > Preferences > Extensions > Get Extensions > Extensions Settings > Install from Disk...
+5. In the browser that appears, select the auto_wrinkle_map_extension.zip archive
