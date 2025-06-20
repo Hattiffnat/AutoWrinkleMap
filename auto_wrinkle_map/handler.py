@@ -6,7 +6,8 @@ from .utils import create_node_tree
 
 @persistent
 def awm_set_tree_handler(_):
-    sc_props = bpy.context.scene.wrmap_props
+    sc_props = bpy.context.scene.wrmap_props    # pyright: ignore reportAttributeAccessIssue
     if not sc_props.node_tree:
+        
         sc_props.node_tree = create_node_tree()
     print('set_tree_handler ... ok!')

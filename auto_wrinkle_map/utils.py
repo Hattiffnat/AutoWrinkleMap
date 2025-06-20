@@ -1,8 +1,9 @@
 import math
-from typing import Iterable, Generator, Union, Literal
+from typing import Iterable, Generator, Optional, Union, Literal
 
 import bpy
 from bpy.types import (
+    Operator,
     ShaderNode,
     ShaderNodeGroup,
     ShaderNodeMix,
@@ -41,13 +42,26 @@ class Singleton(type):
 class InfoMsg(metaclass=Singleton):
     _msgs = []
 
-    def __init__(self, oper=None):
-        self.oper = oper
+    @classmethod
+    def push_msg(cls, msg):
+        cls._msgs.append(msg)
+
+    @classmethod
+    def drain_msgs(cls):
+        yield from cls._msgs
+        cls._msgs.clear()
+
+    def __init__(self, oper: Optional[Operator] = None):
+        if oper is not None:
+            self.oper = oper
+            for (lvl, args, sep, end) in self.drain_msgs():
+                self.oper.report({lvl}, f'{sep.join(args)}{end}')
 
     def report(self, lvl, *args, sep=' ', end='\n'):
-        if self.oper:
+        if self.oper is not None:
             self.oper.report({lvl}, f'{sep.join(args)}{end}')
         else:
+            self.push_msg((lvl, args, sep, end))
             print(f'{lvl}:', *args, sep=sep, end=end)
 
     def info(self, *args, **kwargs):

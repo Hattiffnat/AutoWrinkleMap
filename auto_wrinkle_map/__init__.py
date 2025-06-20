@@ -6,6 +6,7 @@ from .opers import AddWrinkleMapOperator, RemoveWrinkleMapOperator
 from .ui import WrinkleMapPanel
 from .handler import awm_set_tree_handler
 
+# более старые версии blender брали информацию об аддоне отсюда
 # оставлю на всякий случай
 # bl_info = {
 #     'name': 'Auto Wrinkle Map',

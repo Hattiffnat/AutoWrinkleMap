@@ -33,9 +33,11 @@ def mesh_obj_enum_cb(self, context):
 
 def shape_key_enum_cb(self, context):
     mesh_obj = context.object
-    if mesh_obj.type != 'MESH': return
-    for key_block in mesh_obj.data.shape_keys.key_blocks:
-        yield key_block.name, key_block.name, 'Shape Key'
+    if (mesh_obj.type != 'MESH') or (mesh_obj.data.shape_keys is None):
+        return
+
+    for kb in mesh_obj.data.shape_keys.key_blocks:
+        yield (kb.name, kb.name, "Shape Key")
 
 
 def mat_poll_cb(self, mat):
