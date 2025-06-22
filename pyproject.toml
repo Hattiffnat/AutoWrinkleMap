@@ -1,7 +1,9 @@
-[tool.black]
+[tool.ruff]
 line-length = 90
-target-version = ["py313"]
-skip-string-normalization = false
+target-version = "py313"
+
+[tool.ruff.format]
+quote-style = "single"
 
 [tool.isort]
 profile = "black"

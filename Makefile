@@ -9,5 +9,5 @@ build-extension-archive:
 	cd ./$(EXTENSION_FOLDER) &&	zip -r ./$(ADDON_ID)_extension.zip .
 
 fmt:
-	black .
+	ruff format .
 	isort .
