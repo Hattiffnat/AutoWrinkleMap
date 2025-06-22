@@ -3,7 +3,7 @@ import os
 import bpy
 from bpy.utils import previews
 
-from .opers import (
+from .operators import (
     AddWrinkleMapOperator,
     RemoveWrinkleMapOperator,
 )
