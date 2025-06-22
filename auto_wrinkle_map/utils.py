@@ -42,6 +42,8 @@ class Singleton(type):
 
 
 class InfoMsg(metaclass=Singleton):
+    """Helper class for outputting message reports using an operator from anywhere in the code"""
+    oper = None
     _msgs = []
 
     @classmethod
