@@ -1,18 +1,18 @@
 import math
-from typing import Iterable, Generator, Optional, Union, Literal
+from typing import Generator, Iterable, Literal, Optional, Union
 
 import bpy
 from bpy.types import (
+    NodeGroupInput,
+    NodeGroupOutput,
+    NodeSocketColor,
+    NodeSocketFloat,
     Operator,
     ShaderNode,
     ShaderNodeGroup,
-    ShaderNodeMix,
-    ShaderNodeTree,
+    ShaderNodeMix,  # pyright: ignore
     ShaderNodeTexImage,
-    NodeSocketColor,
-    NodeGroupInput,
-    NodeGroupOutput,
-    NodeSocketFloat,
+    ShaderNodeTree,
 )
 
 from .settings import settings
