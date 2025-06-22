@@ -1,9 +1,8 @@
 """Скрипт для дебага"""
 
-import subprocess
-import shutil
 import os
-
+import shutil
+import subprocess
 
 PACKAGE_NAME = 'auto_wrinkle_map'
 ADDONS_FOLDER = os.path.expanduser(r'~/.config/blender/4.4/extensions/user_default')
