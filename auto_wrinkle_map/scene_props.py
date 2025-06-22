@@ -1,3 +1,5 @@
+# pyright: reportMissingModuleSource=false, reportInvalidTypeForm=false
+
 import bpy
 from bpy.props import (
     BoolProperty,
@@ -44,7 +46,7 @@ def shape_key_enum_cb(self, context):
 
 def mat_poll_cb(self, mat):
     # breakpoint()
-    return mat in (slot.material for slot in bpy.context.object.material_slots)
+    return mat in (slot.material for slot in bpy.context.object.material_slots)  # pyright: ignore
 
 
 def armature_poll_cb(self, arm):
@@ -76,18 +78,18 @@ class WrinklePropsScene(PropertyGroup):
     bone: EnumProperty(
         name='Bone',
         description='Select bone',
-        items=bone_enum_cb,
+        items=bone_enum_cb,  # pyright: ignore
     )
     bone_transform: EnumProperty(
         name='Bone Transform',
         description='Select bone transformation for driver',
         items=BONE_TRANSFORMS,
-        default=1
+        default=1,  # pyright: ignore
     )
     shape_key: EnumProperty(
         name='Shape Key',
         description='Select shape key',
-        items=shape_key_enum_cb,
+        items=shape_key_enum_cb,  # pyright: ignore
     )
     node_tree: PointerProperty(
         type=NodeTree,

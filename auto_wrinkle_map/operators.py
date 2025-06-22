@@ -1,3 +1,5 @@
+# pyright: reportMissingModuleSource=false
+
 import bpy
 from bpy.props import IntProperty
 from bpy.types import (
@@ -21,8 +23,7 @@ class AddWrinkleMapOperator(Operator):
 
     @classmethod
     def poll(cls, context):
-        sc_props = context.scene.wrmap_props
-
+        scene_props = context.scene.wrmap_props  # pyright: ignore
         return all(
             (
                 sc_props.material,
@@ -50,9 +51,9 @@ class AddWrinkleMapOperator(Operator):
     def execute(self, context):
         print('WrinkleMapOperator executed')
         self.log = InfoMsg(self)
-        sc_props = context.scene.wrmap_props
+        sc_props = context.scene.wrmap_props  # pyright: ignore
 
-        mesh_obj = context.object
+        mesh_obj = context.object  # pyright: ignore
         if not self.check_props(mesh_obj):
             return {'CANCELLED'}
 
@@ -105,14 +106,14 @@ class RemoveWrinkleMapOperator(Operator):
     bl_idname = 'wrmap.remove_wrinkle_map'
     bl_label = 'Remove Wrinkle Map'
 
-    ob_prop_i: IntProperty()
+    ob_prop_i: IntProperty()  # pyright: ignore
 
     def execute(self, context):
         frame = context.scene.frame_current
         context.scene.frame_set(0)
 
-        ob_prop = context.object.wrinkles[self.ob_prop_i]
-        mesh_obj = context.object
+        ob_prop = context.object.wrinkles[self.ob_prop_i]  # pyright: ignore
+        mesh_obj = context.object  # pyright: ignore
 
         shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(ob_prop.shape_key)
         shape_key_block.driver_remove('value')
@@ -120,8 +121,8 @@ class RemoveWrinkleMapOperator(Operator):
         delete_node_groups(ob_prop.material, ob_prop.node_tree)
 
         if ob_prop.node_tree.users < 1:
-            bpy.data.node_groups.remove(ob_prop.node_tree)
+            bpy.data.node_groups.remove(ob_prop.node_tree)  # pyright: ignore
 
-        context.object.wrinkles.remove(self.ob_prop_i)
+        context.object.wrinkles.remove(self.ob_prop_i)  # pyright: ignore
         context.scene.frame_set(frame)
         return {'FINISHED'}

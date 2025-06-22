@@ -1,3 +1,5 @@
+# type: ignore
+
 import math
 from typing import Generator, Iterable, Literal, Optional, Union
 

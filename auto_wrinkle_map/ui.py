@@ -1,3 +1,5 @@
+# pyright: reportMissingModuleSource=false
+
 import os
 
 import bpy
@@ -23,7 +25,7 @@ class WrinkleMapPanel(bpy.types.Panel):
     bl_region_type = 'UI'
 
     def draw(self, context):
-        sc_props = context.scene.wrmap_props
+        sc_props = context.scene.wrmap_props  # pyright: ignore
         layout = self.layout
 
         img_node = sc_props.node_tree.nodes.get('Image Texture')
@@ -41,10 +43,10 @@ class WrinkleMapPanel(bpy.types.Panel):
         # Кнопка оператора
         layout.operator(AddWrinkleMapOperator.bl_idname)
 
-        if context.object.wrinkles:
+        if context.object.wrinkles:  # pyright: ignore
             layout.separator(factor=2)
             layout.label(text='Wrinkle Maps:')
-        for i, wr in enumerate(context.object.wrinkles):
+        for i, wr in enumerate(context.object.wrinkles):  # pyright: ignore
             row = layout.box().row()
             col1, col2 = row.column(align=True), row.column(align=True)
             col1.prop(

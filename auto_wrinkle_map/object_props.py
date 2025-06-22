@@ -1,3 +1,5 @@
+# pyright: reportMissingModuleSource=false, reportInvalidTypeForm=false
+
 import bpy
 from bpy.props import (
     BoolProperty,
@@ -28,7 +30,7 @@ from .utils import (
 
 
 def mat_poll_cb(self, mat):
-    return mat in (slot.material for slot in bpy.context.object.material_slots)
+    return mat in (slot.material for slot in bpy.context.object.material_slots)  # pyright: ignore
 
 
 def mat_update_cb(self, context):
@@ -83,7 +85,7 @@ class WrinklePropsObject(PropertyGroup):
     bone: EnumProperty(
         name='Bone',
         description='Select bone',
-        items=bone_enum_cb,
+        items=bone_enum_cb,  # pyright: ignore
     )
     bone_transform: EnumProperty(
         name='Bone Transform',
@@ -93,7 +95,7 @@ class WrinklePropsObject(PropertyGroup):
     shape_key: EnumProperty(
         name='Shape Key',
         description='Select shape key',
-        items=shape_key_enum_cb,
+        items=shape_key_enum_cb,  # pyright: ignore
     )
     node_tree: PointerProperty(
         type=NodeTree,
