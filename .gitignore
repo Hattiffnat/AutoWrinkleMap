@@ -180,13 +180,11 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# my
+# zed editor
+/.zed/
+
+# release folder
 /*release/
 
 __pycache__
-*.blend1
-*.blend2
-*.blend3
-*.blend4
-*.blend5
-*.blend6
+*.blend[0-9]*
