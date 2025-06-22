@@ -1,4 +1,4 @@
-"""Скрипт для дебага"""
+"""Debug script"""
 
 import os
 import shutil

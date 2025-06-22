@@ -80,28 +80,28 @@ INFO = InfoMsg()
 
 
 def create_node_tree():
-    ### Создаём дерево
+    # Create a tree
     gr_tree = bpy.data.node_groups.new('WrinkleMapGroup', ShaderNodeTree.__name__)
     gr_input_node = gr_tree.nodes.new(NodeGroupInput.__name__)
     gr_output_node = gr_tree.nodes.new(NodeGroupOutput.__name__)
 
-    ## Создаём Mix и Image Texture ноды
+    # Create Mix and Image Texture nodes
     mix_node = gr_tree.nodes.new(ShaderNodeMix.__name__)
     mix_node.data_type = 'RGBA'
     mix_node.inputs.get('Factor').default_value = 0
 
     img_node = gr_tree.nodes.new(ShaderNodeTexImage.__name__)
 
-    # Соединяем Mix и Image Texture
+    # Connect Mix and Image Texture
     gr_tree.links.new(mix_node.inputs.get('B'), img_node.outputs.get('Color'))
 
-    # Соединяем вход и выход группы
+    # Connect the input and output of the group
     inpA = gr_tree.interface.new_socket('A', in_out='INPUT')
     inpA.socket_type = NodeSocketColor.__name__
     outpResult = gr_tree.interface.new_socket('Result', in_out='OUTPUT')
     outpResult.socket_type = NodeSocketColor.__name__
 
-    # Дополнительный вход значения фактора
+    # Additional factor value input
     inpFactor = gr_tree.interface.new_socket('Factor', in_out='INPUT')
     inpFactor.socket_type = NodeSocketFloat.__name__
 
@@ -110,7 +110,7 @@ def create_node_tree():
     gr_tree.links.new(mix_node.inputs['A'], gr_input_node.outputs['A'])
     gr_tree.links.new(gr_output_node.inputs['Result'], mix_node.outputs['Result'])
 
-    # Размещаем ноды визуально
+    # Place nodes visually without overlapping
     ind = settings.INDENT
 
     gr_input_node.location.x = img_node.location.x - gr_input_node.width - ind
@@ -190,7 +190,7 @@ def add_node_groups(mat, node_tree):
 
     sc_props = bpy.context.scene.wrmap_props
 
-    ## Находим Material Output и относительно него ищем куда воткнуть группу
+    # Find the Material Output and look for where to insert the group relative to it
     roots = (m_n for m_n in mat.node_tree.nodes if m_n.type == 'OUTPUT_MATERIAL')
 
     surface_nodes = get_connected_nodes(roots, 'Surface', 'inputs')
@@ -213,7 +213,7 @@ def add_node_groups(mat, node_tree):
 
         mat.node_tree.links.new(normal_col_sock, gr.outputs['Result'])
 
-        # Размещаем группу визуально
+        # Place the group visually
         gr.location.y = range_y[0]
         gr.location.x = normal_node.location.x - gr.width - settings.INDENT
 

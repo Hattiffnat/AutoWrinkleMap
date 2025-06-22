@@ -36,11 +36,9 @@ class WrinkleMapPanel(bpy.types.Panel):
         layout.prop(sc_props, 'armature')
         layout.prop(sc_props, 'bone', icon='BONE_DATA')
 
-        # Настройка драйвера
         layout.prop(sc_props, 'bone_transform', icon='DRIVER')
         layout.prop(sc_props, 'shape_key', icon='SHAPEKEY_DATA')
 
-        # Кнопка оператора
         layout.operator(AddWrinkleMapOperator.bl_idname)
 
         if context.object.wrinkles:  # pyright: ignore
