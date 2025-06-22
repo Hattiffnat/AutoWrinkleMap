@@ -18,7 +18,7 @@ ICONS.load('wrinkle', os.path.join(icons_path, 'wrinkle_icon.png'), 'IMAGE')
 
 
 class WrinkleMapPanel(bpy.types.Panel):
-    bl_idname = f'VIEW3D_PT_{settings.NAME_DEV}'
+    bl_idname = f'VIEW3D_PT_{settings.EXTENSION_ID}'
     bl_category = settings.NAME_HEADER
     bl_label = settings.NAME_HEADER
     bl_space_type = 'VIEW_3D'
