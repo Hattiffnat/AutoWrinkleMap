@@ -6,21 +6,6 @@ from .opers import AddWrinkleMapOperator, RemoveWrinkleMapOperator
 from .ui import WrinkleMapPanel
 from .handler import awm_set_tree_handler
 
-# более старые версии blender брали информацию об аддоне отсюда
-# оставлю на всякий случай
-# bl_info = {
-#     'name': 'Auto Wrinkle Map',
-#     'website': 'https://github.com/Hattiffnat/AutoWrinkleMap',
-#     'author': 'Hattiffnat',
-#     'version': (0, 0, 4),
-#     'blender': (4, 4, 0),
-#     'location': 'View3D > Sidebar > Auto Wrinkle Map Tab',
-#     'description': 'Helps you to create wrinkle maps driven from bones '
-#                    '(with shape-keys) in one click',
-#     'category': 'Rigging',
-# }
-
-
 classes = (
     WrinkleMapPanel,
     AddWrinkleMapOperator,
