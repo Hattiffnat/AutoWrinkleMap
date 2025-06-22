@@ -26,11 +26,11 @@ class AddWrinkleMapOperator(Operator):
         scene_props = context.scene.wrmap_props  # pyright: ignore
         return all(
             (
-                sc_props.material,
-                sc_props.armature,
-                sc_props.bone,
-                sc_props.bone_transform,
-                sc_props.shape_key,
+                scene_props.material,
+                scene_props.armature,
+                scene_props.bone,
+                scene_props.bone_transform,
+                scene_props.shape_key,
             )
         )
 
