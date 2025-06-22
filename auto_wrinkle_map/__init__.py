@@ -1,8 +1,8 @@
 import bpy
 
-from .scene_props import WrinklePropsScene
 from .object_props import WrinklePropsObject
-from .opers import AddWrinkleMapOperator, RemoveWrinkleMapOperator
+from .operators import AddWrinkleMapOperator, RemoveWrinkleMapOperator
+from .scene_props import WrinklePropsScene
 from .ui import WrinkleMapPanel
 
 classes = (
