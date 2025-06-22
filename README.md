@@ -13,4 +13,4 @@
 1. Download the auto_wrinkle_map_extension.zip archive from the **[latest release](https://github.com/Hattiffnat/AutoWrinkleMap/releases)**
 2. Launch Blender.
 3. Edit > Preferences > Extensions > Get Extensions > Extensions Settings > Install from Disk...
-5. In the browser that appears, select the auto_wrinkle_map_extension.zip archive
+5. In the filebrowser that appears, select the auto_wrinkle_map_extension.zip archive
