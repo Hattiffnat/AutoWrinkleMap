@@ -1,22 +1,22 @@
 import bpy
-from bpy.types import(
-    Texture,
-    Image,
-    TextureSlot,
-    PropertyGroup,
-    Armature,
-    Bone,
-    Object,
-    NodeTree,
-    Key,
-    Material,
-)
 from bpy.props import (
-    PointerProperty,
+    BoolProperty,
     CollectionProperty,
     EnumProperty,
+    PointerProperty,
     StringProperty,
-    BoolProperty
+)
+from bpy.types import (
+    Armature,
+    Bone,
+    Image,
+    Key,
+    Material,
+    NodeTree,
+    Object,
+    PropertyGroup,
+    Texture,
+    TextureSlot,
 )
 
 from .utils import BONE_TRANSFORMS
