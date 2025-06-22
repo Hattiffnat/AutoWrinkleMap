@@ -8,7 +8,7 @@ PACKAGE_NAME = 'auto_wrinkle_map'
 ADDONS_FOLDER = os.path.expanduser(r'~/.config/blender/4.4/extensions/user_default')
 ADDON_FOLDER = os.path.join(ADDONS_FOLDER, PACKAGE_NAME)
 
-TEST_FILE = r'blend/Unity Slava wrinkle test.blend'
+TEST_FILE = r'blend/wrinkle_test.blend'
 
 
 def main():
