@@ -56,7 +56,8 @@ def bone_enum_cb(self, context):
 
 def shape_key_enum_cb(self, context):
     mesh_obj = context.object
-    if mesh_obj.type != 'MESH': return
+    if mesh_obj.type != 'MESH':
+        return
     for key_block in mesh_obj.data.shape_keys.key_blocks:
         yield key_block.name, key_block.name, 'Shape Key'
 
