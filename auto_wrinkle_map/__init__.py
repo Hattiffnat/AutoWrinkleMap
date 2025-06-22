@@ -4,7 +4,6 @@ from .scene_props import WrinklePropsScene
 from .object_props import WrinklePropsObject
 from .opers import AddWrinkleMapOperator, RemoveWrinkleMapOperator
 from .ui import WrinkleMapPanel
-from .handler import awm_set_tree_handler
 
 classes = (
     WrinkleMapPanel,
@@ -20,21 +19,15 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    # Свойства сцены для создания
-    bpy.types.Scene.wrmap_props = bpy.props.PointerProperty(type=WrinklePropsScene)
-    # Свойства в объекте для хранения
-    bpy.types.Object.wrinkles = bpy.props.CollectionProperty(type=WrinklePropsObject)
-
-    bpy.app.handlers.load_post.append(awm_set_tree_handler)
-    bpy.app.handlers.version_update.append(awm_set_tree_handler)
+    # Scene properties for creation
+    bpy.types.Scene.wrmap_props = bpy.props.PointerProperty(type=WrinklePropsScene)  # pyright: ignore
+    # Properties in the storage object
+    bpy.types.Object.wrinkles = bpy.props.CollectionProperty(type=WrinklePropsObject)  # pyright: ignore
 
 
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
-    del bpy.types.Object.wrinkles
-    del bpy.types.Scene.wrmap_props
-
-    bpy.app.handlers.load_post.remove(awm_set_tree_handler)
-    bpy.app.handlers.version_update.remove(awm_set_tree_handler)
+    del bpy.types.Object.wrinkles  # pyright: ignore
+    del bpy.types.Scene.wrmap_props  # pyright: ignore
