@@ -32,7 +32,8 @@ def mat_poll_cb(self, mat):
 
 
 def mat_update_cb(self, context):
-    if not self.expand: return
+    if not self.expand:
+        return
     print('mat_update_cb:')
 
     for mat_slot in context.object.material_slots:
