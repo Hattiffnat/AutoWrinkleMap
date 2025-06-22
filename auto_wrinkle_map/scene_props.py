@@ -23,11 +23,13 @@ from .utils import BONE_TRANSFORMS
 
 
 def mesh_obj_enum_cb(self, context):
-    if not (context.object and context.object.type == 'ARMATURE'): return
+    if not (context.object and context.object.type == 'ARMATURE'):
+        return
 
     # breakpoint()
     for child in context.object.children:
-        if child.type != 'MESH': continue
+        if child.type != 'MESH':
+            continue
         yield child.name, child.name, 'Object'
 
 
@@ -37,7 +39,7 @@ def shape_key_enum_cb(self, context):
         return
 
     for kb in mesh_obj.data.shape_keys.key_blocks:
-        yield (kb.name, kb.name, "Shape Key")
+        yield (kb.name, kb.name, 'Shape Key')
 
 
 def mat_poll_cb(self, mat):
@@ -58,10 +60,7 @@ def bone_enum_cb(self, context):
 
 
 class WrinklePropsScene(PropertyGroup):
-    name: StringProperty(
-        name='Setup Name',
-        default='My wrinkle map'
-    )
+    name: StringProperty(name='Setup Name', default='My wrinkle map')
     material: PointerProperty(
         type=Material,
         name='Material',

@@ -17,12 +17,10 @@ from bpy.types import (
 
 from .settings import settings
 
-
 BONE_TRANSFORMS = (
     ('LOC_X', 'Location X', ''),
     ('LOC_Y', 'Location Y', ''),
     ('LOC_Z', 'Location Z', ''),
-
     ('ROT_X', 'Rotation X', ''),
     ('ROT_Y', 'Rotation Y', ''),
     ('ROT_Z', 'Rotation Z', ''),
@@ -35,7 +33,7 @@ class Singleton(type):
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-            print(f"cls: {cls} exemplar created: {cls._instances[cls]}")
+            print(f'cls: {cls} exemplar created: {cls._instances[cls]}')
 
         cls.__init__(cls._instances[cls], *args, **kwargs)
         return cls._instances[cls]
@@ -56,7 +54,7 @@ class InfoMsg(metaclass=Singleton):
     def __init__(self, oper: Optional[Operator] = None):
         if oper is not None:
             self.oper = oper
-            for (lvl, args, sep, end) in self.drain_msgs():
+            for lvl, args, sep, end in self.drain_msgs():
                 self.oper.report({lvl}, f'{sep.join(args)}{end}')
 
     def report(self, lvl, *args, sep=' ', end='\n'):
@@ -132,27 +130,32 @@ def get_wrinkle_node_tree():
 
 
 def nodes_bounds(nodes: Iterable[ShaderNode]) -> tuple[list[float], list[float]]:
-    """Определяет границы прямоугольника в котором находятся ноды"""
-    range_x = [math.inf, -math.inf]     # x_min, x_max
-    range_y = [math.inf, -math.inf]     # y_min, y_max
+    """Defines the boundaries of the rectangle in which the nodes are located"""
+    range_x = [math.inf, -math.inf]  # x_min, x_max
+    range_y = [math.inf, -math.inf]  # y_min, y_max
 
     for node in nodes:
-        if range_x[0] > node.location.x: range_x[0] = node.location.x
-        if range_y[0] > node.location.y: range_y[0] = node.location.y
+        if range_x[0] > node.location.x:
+            range_x[0] = node.location.x
+        if range_y[0] > node.location.y:
+            range_y[0] = node.location.y
 
         node_right_border = node.location.x + node.width
-        if range_x[1] < node_right_border: range_x[1] = node_right_border
+        if range_x[1] < node_right_border:
+            range_x[1] = node_right_border
         node_top_border = node.location.y + node.height
-        if range_y[1] < node_top_border: range_y[1] = node_top_border
+        if range_y[1] < node_top_border:
+            range_y[1] = node_top_border
 
     return range_x, range_y
 
 
-def get_connected_sockets(nodes: Union[ShaderNode, Iterable[ShaderNode]],
-                          sockets_names: Union[str, Iterable[str]],
-                          mode: Literal['inputs', 'outputs']) -> Generator:
-    """Получить присоединенные сокеты"""
-
+def get_connected_sockets(
+    nodes: Union[ShaderNode, Iterable[ShaderNode]],
+    sockets_names: Union[str, Iterable[str]],
+    mode: Literal['inputs', 'outputs'],
+) -> Generator:
+    """Get attached sockets"""
     if isinstance(nodes, ShaderNode):
         nodes = (nodes,)
 
@@ -163,16 +166,18 @@ def get_connected_sockets(nodes: Union[ShaderNode, Iterable[ShaderNode]],
 
     for node in nodes:
         for socket in getattr(node, mode):
-            if socket.name not in sockets_names: continue
+            if socket.name not in sockets_names:
+                continue
             for link in socket.links:
                 yield link.from_socket if mode == 'inputs' else link.to_socket
 
 
-def get_connected_nodes(nodes: Union[ShaderNode, Iterable[ShaderNode]],
-                        sockets_names: Union[str, Iterable[str]],
-                        mode: Literal['inputs', 'outputs']) -> Generator:
-    """Получить присоединенные ноды по имени сокета"""
-
+def get_connected_nodes(
+    nodes: Union[ShaderNode, Iterable[ShaderNode]],
+    sockets_names: Union[str, Iterable[str]],
+    mode: Literal['inputs', 'outputs'],
+) -> Generator:
+    """Get attached nodes by socket name"""
     for sock in get_connected_sockets(nodes, sockets_names, mode):
         yield sock.node
 
@@ -187,8 +192,7 @@ def add_node_groups(mat, node_tree):
     roots = (m_n for m_n in mat.node_tree.nodes if m_n.type == 'OUTPUT_MATERIAL')
 
     surface_nodes = get_connected_nodes(roots, 'Surface', 'inputs')
-    normal_nodes = get_connected_nodes(surface_nodes,
-                                       'Normal', 'inputs')
+    normal_nodes = get_connected_nodes(surface_nodes, 'Normal', 'inputs')
 
     range_x, range_y = nodes_bounds(mat.node_tree.nodes)
 
@@ -216,8 +220,10 @@ def add_node_groups(mat, node_tree):
 
 def delete_node_groups(mat, node_tree):
     for node in mat.node_tree.nodes:
-        if node.type != 'GROUP': continue
-        if node.node_tree != node_tree: continue
+        if node.type != 'GROUP':
+            continue
+        if node.node_tree != node_tree:
+            continue
 
         mixRes = normCol = None
         for sock in get_connected_sockets(node, 'A', 'inputs'):
@@ -229,7 +235,8 @@ def delete_node_groups(mat, node_tree):
 
         mat.node_tree.nodes.remove(node)
 
-        if not (mixRes or normCol): continue
+        if not (mixRes or normCol):
+            continue
         mat.node_tree.links.new(normCol, mixRes)
 
 

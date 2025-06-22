@@ -16,12 +16,8 @@ def main():
     shutil.rmtree(ADDON_FOLDER, ignore_errors=True)
     shutil.copytree(PACKAGE_NAME, ADDON_FOLDER)
 
-    subprocess.call([
-        '/usr/bin/blender', f'{TEST_FILE}',
-        '--addons', PACKAGE_NAME
-    ])
+    subprocess.call(['/usr/bin/blender', f'{TEST_FILE}', '--addons', PACKAGE_NAME])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
-    

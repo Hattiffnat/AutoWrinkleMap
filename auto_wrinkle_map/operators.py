@@ -16,9 +16,8 @@ from .utils import (
 
 class AddWrinkleMapOperator(Operator):
     """Add driver and node group"""
-
-    bl_idname = "wrmap.add_wrinkle_map"
-    bl_label = "Add Wrinkle Map"
+    bl_idname = 'wrmap.add_wrinkle_map'
+    bl_label = 'Add Wrinkle Map'
 
     @classmethod
     def poll(cls, context):
@@ -35,27 +34,27 @@ class AddWrinkleMapOperator(Operator):
         )
 
     def check_props(self, obj):
-        sc_props = bpy.context.scene.wrmap_props
-        sc_img_node = sc_props.node_tree.nodes.get("Image Texture")
+        sc_props = bpy.context.scene.wrmap_props  # pyright: ignore
+        sc_img_node = sc_props.node_tree.nodes.get('Image Texture')
         if not sc_img_node.image:
-            self.log.error("Texture is not selected!")
+            self.log.error('Texture is not selected!')
             return False
 
         for ob_props in obj.wrinkles:
-            ob_img_node = ob_props.node_tree.nodes.get("Image Texture")
+            ob_img_node = ob_props.node_tree.nodes.get('Image Texture')
             if ob_props.bone == sc_props.bone:
-                self.log.error("This bone is used")
+                self.log.error('This bone is used')
                 return False
         return True
 
     def execute(self, context):
-        print("WrinkleMapOperator executed")
+        print('WrinkleMapOperator executed')
         self.log = InfoMsg(self)
         sc_props = context.scene.wrmap_props
 
         mesh_obj = context.object
         if not self.check_props(mesh_obj):
-            return {"CANCELLED"}
+            return {'CANCELLED'}
 
         # breakpoint()
         #### Копируем свойства в объект
@@ -73,25 +72,25 @@ class AddWrinkleMapOperator(Operator):
         ob_props.node_tree.name = ob_props.name
 
         # Настройка изображения
-        ob_props.node_tree.nodes["Image Texture"].image.colorspace_settings.name = (
-            "Non-Color"
-        )
+        ob_props.node_tree.nodes[  # pyright: ignore
+            'Image Texture'
+        ].image.colorspace_settings.name = 'Non-Color'
 
         ##### Shape Key драйвер
         shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(ob_props.shape_key)
-        fcur = shape_key_block.driver_add("value")
-        fcur.driver.type = "SCRIPTED"
+        fcur = shape_key_block.driver_add('value')
+        fcur.driver.type = 'SCRIPTED'
 
         var = fcur.driver.variables.new()
 
-        fcur.driver.expression = f"{var.name} + 0.0"
-        var.type = "TRANSFORMS"
+        fcur.driver.expression = f'{var.name} + 0.0'
+        var.type = 'TRANSFORMS'
 
         targ = var.targets[0]
         targ.id = ob_props.armature
         targ.bone_target = ob_props.bone
         targ.transform_type = ob_props.bone_transform
-        targ.transform_space = "LOCAL_SPACE"
+        targ.transform_space = 'LOCAL_SPACE'
 
         ##### Материал
         for gr in add_node_groups(ob_props.material, ob_props.node_tree):
@@ -103,8 +102,8 @@ class AddWrinkleMapOperator(Operator):
 class RemoveWrinkleMapOperator(Operator):
     """Remove drivers"""
 
-    bl_idname = "wrmap.remove_wrinkle_map"
-    bl_label = "Remove Wrinkle Map"
+    bl_idname = 'wrmap.remove_wrinkle_map'
+    bl_label = 'Remove Wrinkle Map'
 
     ob_prop_i: IntProperty()
 
@@ -116,7 +115,7 @@ class RemoveWrinkleMapOperator(Operator):
         mesh_obj = context.object
 
         shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(ob_prop.shape_key)
-        shape_key_block.driver_remove("value")
+        shape_key_block.driver_remove('value')
 
         delete_node_groups(ob_prop.material, ob_prop.node_tree)
 
@@ -125,4 +124,4 @@ class RemoveWrinkleMapOperator(Operator):
 
         context.object.wrinkles.remove(self.ob_prop_i)
         context.scene.frame_set(frame)
-        return {"FINISHED"}
+        return {'FINISHED'}
