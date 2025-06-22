@@ -96,7 +96,7 @@ class AddWrinkleMapOperator(Operator):
         for gr in add_node_groups(ob_props.material, ob_props.node_tree):
             set_node_group_driver(gr, ob_props)
 
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class RemoveWrinkleMapOperator(Operator):
