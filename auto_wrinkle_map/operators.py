@@ -101,8 +101,7 @@ class AddWrinkleMapOperator(Operator):
 
 
 class RemoveWrinkleMapOperator(Operator):
-    """Remove drivers"""
-
+    """Remove drivers and node group"""
     bl_idname = 'wrmap.remove_wrinkle_map'
     bl_label = 'Remove Wrinkle Map'
 
