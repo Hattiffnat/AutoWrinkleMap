@@ -1,3 +1,4 @@
+# [Description](https://extensions.blender.org/approval-queue/auto-wrinkle-map/)
 
 # Installation:
 
