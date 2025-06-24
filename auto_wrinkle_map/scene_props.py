@@ -2,23 +2,19 @@
 
 import bpy
 from bpy.props import (
-    BoolProperty,
-    CollectionProperty,
     EnumProperty,
     PointerProperty,
     StringProperty,
 )
 from bpy.types import (
     Armature,
-    Bone,
+    Context,
     Image,
-    Key,
     Material,
+    Mesh,
     NodeTree,
     Object,
     PropertyGroup,
-    Texture,
-    TextureSlot,
 )
 
 from .utils import BONE_TRANSFORMS
@@ -35,34 +31,51 @@ def mesh_obj_enum_cb(self, context):
         yield child.name, child.name, 'Object'
 
 
-def shape_key_enum_cb(self, context):
-    mesh_obj = context.object
-    if (mesh_obj.type != 'MESH') or (mesh_obj.data.shape_keys is None):
+def shape_key_enum_cb(self, context: Context):
+    mesh_obj: Object = getattr(context, 'object')
+    if mesh_obj.type != 'MESH':
         return
 
-    for kb in mesh_obj.data.shape_keys.key_blocks:
+    mesh: Mesh = getattr(mesh_obj, 'data')
+
+    if mesh.shape_keys is None:
+        return
+
+    for kb in getattr(mesh.shape_keys, 'key_blocks'):
         yield (kb.name, kb.name, 'Shape Key')
 
 
-def mat_poll_cb(self, mat):
-    # breakpoint()
+def mat_poll_cb(self, mat: Material):
     return mat in (slot.material for slot in bpy.context.object.material_slots)  # pyright: ignore
 
 
-def armature_poll_cb(self, arm):
-    # breakpoint()
+def armature_poll_cb_1(self, arm: Armature):
+    if bpy.context.object.parent is None:
+        return False
+
+    if bpy.context.object.parent.type != 'ARMATURE':
+        return False
+
     return arm == bpy.context.object.parent
 
 
-def bone_enum_cb(self, context):
-    if not self.armature:
+def armature_poll_cb_2(self, arm: Object):
+    return arm.type == 'ARMATURE'
+
+
+def bone_enum_cb(self, context: Context):
+    if self.armature is None:
         return
+
     for bone in self.armature.data.bones:
         yield bone.name, bone.name, 'Bone'
 
 
 class WrinklePropsScene(PropertyGroup):
     name: StringProperty(name='Setup Name', default='My wrinkle map')
+    image: PointerProperty(
+        name='Wrinkle Map', type=Image, description='Select wrinkle normal map'
+    )
     material: PointerProperty(
         type=Material,
         name='Material',
@@ -73,7 +86,7 @@ class WrinklePropsScene(PropertyGroup):
         type=Object,
         name='Armature',
         description='Select armature',
-        poll=armature_poll_cb,
+        poll=armature_poll_cb_2,
     )
     bone: EnumProperty(
         name='Bone',

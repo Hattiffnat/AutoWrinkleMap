@@ -1,18 +1,20 @@
 # type: ignore
+# pyright: reportMissingModuleSource=false, reportInvalidTypeForm=false
 
 import math
 from typing import Generator, Iterable, Literal, Optional, Union
 
 import bpy
+from bpy.types import ShaderNodeMix  # pyright: ignore
 from bpy.types import (
     NodeGroupInput,
     NodeGroupOutput,
     NodeSocketColor,
     NodeSocketFloat,
+    NodeTree,
     Operator,
     ShaderNode,
     ShaderNodeGroup,
-    ShaderNodeMix,  # pyright: ignore
     ShaderNodeTexImage,
     ShaderNodeTree,
 )
@@ -43,6 +45,7 @@ class Singleton(type):
 
 class InfoMsg(metaclass=Singleton):
     """Helper class for outputting message reports using an operator from anywhere in the code"""
+
     oper = None
     _msgs = []
 
@@ -81,7 +84,14 @@ class InfoMsg(metaclass=Singleton):
 INFO = InfoMsg()
 
 
-def create_node_tree():
+def get_wrinkle_node_tree() -> NodeTree:
+    sc_props = getattr(bpy.context.scene, 'wrmap_props')
+    if getattr(sc_props, 'node_tree', None) is None:
+        sc_props.node_tree = __create_node_tree()
+    return sc_props.node_tree
+
+
+def __create_node_tree():
     # Create a tree
     gr_tree = bpy.data.node_groups.new('WrinkleMapGroup', ShaderNodeTree.__name__)
     gr_input_node = gr_tree.nodes.new(NodeGroupInput.__name__)
@@ -126,14 +136,7 @@ def create_node_tree():
     return gr_tree
 
 
-def get_wrinkle_node_tree():
-    sc_props = bpy.context.scene.wrmap_props
-    if not sc_props.node_tree:
-        sc_props.node_tree = create_node_tree()
-    return sc_props.node_tree.copy()
-
-
-def nodes_bounds(nodes: Iterable[ShaderNode]) -> tuple[list[float], list[float]]:
+def __nodes_bounds(nodes: Iterable[ShaderNode]) -> tuple[list[float], list[float]]:
     """Defines the boundaries of the rectangle in which the nodes are located"""
     range_x = [math.inf, -math.inf]  # x_min, x_max
     range_y = [math.inf, -math.inf]  # y_min, y_max
@@ -198,7 +201,7 @@ def add_node_groups(mat, node_tree):
     surface_nodes = get_connected_nodes(roots, 'Surface', 'inputs')
     normal_nodes = get_connected_nodes(surface_nodes, 'Normal', 'inputs')
 
-    range_x, range_y = nodes_bounds(mat.node_tree.nodes)
+    range_x, range_y = __nodes_bounds(mat.node_tree.nodes)
 
     for normal_node in normal_nodes:
         gr = mat.node_tree.nodes.new(ShaderNodeGroup.__name__)
@@ -245,7 +248,6 @@ def delete_node_groups(mat, node_tree):
 
 
 def set_node_group_driver(gr, props):
-    # Node group драйвер
     fcur = gr.inputs['Factor'].driver_add('default_value')
     fcur.driver.type = 'SCRIPTED'
 

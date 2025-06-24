@@ -4,9 +4,9 @@ import bpy
 from bpy.props import IntProperty
 from bpy.types import (
     Operator,
-    ShaderNodeGroup,
 )
 
+from .scene_props import WrinklePropsScene
 from .utils import (
     InfoMsg,
     add_node_groups,
@@ -24,25 +24,21 @@ class AddWrinkleMapOperator(Operator):
     @classmethod
     def poll(cls, context):
         scene_props = context.scene.wrmap_props  # pyright: ignore
-        return all(
+        return not any(
             (
-                scene_props.material,
-                scene_props.armature,
-                scene_props.bone,
-                scene_props.bone_transform,
-                scene_props.shape_key,
+                scene_props.image is None,
+                scene_props.material is None,
+                scene_props.armature is None,
+                scene_props.bone in (None, ''),
+                scene_props.bone_transform is None,
+                scene_props.shape_key in (None, ''),
             )
         )
 
     def check_props(self, obj):
-        sc_props = bpy.context.scene.wrmap_props  # pyright: ignore
-        sc_img_node = sc_props.node_tree.nodes.get('Image Texture')
-        if not sc_img_node.image:
-            self.log.error('Texture is not selected!')
-            return False
+        sc_props: WrinklePropsScene = getattr(bpy.context.scene, 'wrmap_props')
 
         for ob_props in obj.wrinkles:
-            ob_img_node = ob_props.node_tree.nodes.get('Image Texture')
             if ob_props.bone == sc_props.bone:
                 self.log.error('This bone is used')
                 return False
@@ -57,10 +53,10 @@ class AddWrinkleMapOperator(Operator):
         if not self.check_props(mesh_obj):
             return {'CANCELLED'}
 
-        # breakpoint()
-        #### Копируем свойства в объект
+        # Copy properties to the object
         ob_props = mesh_obj.wrinkles.add()
-        ob_props.node_tree = get_wrinkle_node_tree()
+        ob_props.node_tree = get_wrinkle_node_tree().copy()
+
         ob_props.name = sc_props.name
         ob_props.armature = sc_props.armature
         ob_props.shape_key = sc_props.shape_key
@@ -69,15 +65,16 @@ class AddWrinkleMapOperator(Operator):
         ob_props.material = sc_props.material
         ob_props.bone_transform = sc_props.bone_transform
 
-        # Настройка дерева
+        # Tree setup
         ob_props.node_tree.name = ob_props.name
 
-        # Настройка изображения
-        ob_props.node_tree.nodes[  # pyright: ignore
-            'Image Texture'
-        ].image.colorspace_settings.name = 'Non-Color'
+        # Image setup
+        img_node = ob_props.node_tree.nodes['Image Texture']  # pyright: ignore
 
-        ##### Shape Key драйвер
+        img_node.image = sc_props.image
+        img_node.image.colorspace_settings.name = 'Non-Color'
+
+        # Shape Key driver setup
         shape_key_block = mesh_obj.data.shape_keys.key_blocks.get(ob_props.shape_key)
         fcur = shape_key_block.driver_add('value')
         fcur.driver.type = 'SCRIPTED'
@@ -93,7 +90,7 @@ class AddWrinkleMapOperator(Operator):
         targ.transform_type = ob_props.bone_transform
         targ.transform_space = 'LOCAL_SPACE'
 
-        ##### Материал
+        # Material setup
         for gr in add_node_groups(ob_props.material, ob_props.node_tree):
             set_node_group_driver(gr, ob_props)
 

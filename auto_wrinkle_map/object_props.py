@@ -1,24 +1,21 @@
 # pyright: reportMissingModuleSource=false, reportInvalidTypeForm=false
 
+from typing import Optional
+
 import bpy
 from bpy.props import (
     BoolProperty,
-    CollectionProperty,
     EnumProperty,
     PointerProperty,
     StringProperty,
 )
 from bpy.types import (
-    Armature,
-    Bone,
-    Image,
-    Key,
+    Context,
     Material,
+    Mesh,
     NodeTree,
     Object,
     PropertyGroup,
-    Texture,
-    TextureSlot,
 )
 
 from .utils import (
@@ -29,38 +26,33 @@ from .utils import (
 )
 
 
-def mat_poll_cb(self, mat):
-    return mat in (slot.material for slot in bpy.context.object.material_slots)  # pyright: ignore
-
-
-def mat_update_cb(self, context):
+def mat_update_cb(self, context: Context):
     if not self.expand:
         return
     print('mat_update_cb:')
 
-    for mat_slot in context.object.material_slots:
+    obj: Object = getattr(context, 'object')
+
+    for mat_slot in getattr(obj, 'material_slots'):
         delete_node_groups(mat_slot.material, self.node_tree)
 
     for gr in add_node_groups(self.material, self.node_tree):
         set_node_group_driver(gr, self)
 
 
-def armature_poll_cb(self, arm):
-    return arm == bpy.context.object.parent
-
-
-def bone_enum_cb(self, context):
-    if not self.armature:
+def bone_enum_cb(self, _: Context):
+    if self.armature is None:
         return
     for bone in self.armature.data.bones:
         yield bone.name, bone.name, 'Bone'
 
 
-def shape_key_enum_cb(self, context):
-    mesh_obj = context.object
+def shape_key_enum_cb(self, context: Context):
+    mesh_obj: Object = getattr(context, 'object')
     if mesh_obj.type != 'MESH':
         return
-    for key_block in mesh_obj.data.shape_keys.key_blocks:
+    mesh: Mesh = getattr(mesh_obj, 'data')
+    for key_block in getattr(mesh.shape_keys, 'key_blocks'):
         yield key_block.name, key_block.name, 'Shape Key'
 
 
@@ -73,14 +65,14 @@ class WrinklePropsObject(PropertyGroup):
         type=Material,
         name='Material',
         description='Select material',
-        poll=mat_poll_cb,
         update=mat_update_cb,
+        options={'HIDDEN'}
     )
     armature: PointerProperty(
         type=Object,
         name='Armature',
         description='Select armature',
-        poll=armature_poll_cb,
+        options={'HIDDEN'}
     )
     bone: EnumProperty(
         name='Bone',
