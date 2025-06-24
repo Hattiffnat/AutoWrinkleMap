@@ -19,9 +19,7 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    # Scene properties for creation
     bpy.types.Scene.wrmap_props = bpy.props.PointerProperty(type=WrinklePropsScene)  # pyright: ignore
-    # Properties in the storage object
     bpy.types.Object.wrinkles = bpy.props.CollectionProperty(type=WrinklePropsObject)  # pyright: ignore
 
 
