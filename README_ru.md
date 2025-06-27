@@ -15,3 +15,5 @@
 2. Запустите Blender.
 3. Edit > Preferences > Extensions > Get Extensions > Extensions Settings > Install from Disk...
 4. В появившемся браузере выберите архив auto_wrinkle_map_extension.zip
+
+# 💸 [Задонатить](https://github.com/Hattiffnat/donate_details/blob/main/version_1.md) 💸
